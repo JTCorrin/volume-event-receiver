@@ -3,8 +3,11 @@ import { WebPlugin } from '@capacitor/core';
 import type { VolumeEventReceiverPlugin } from './definitions';
 
 export class VolumeEventReceiverWeb extends WebPlugin implements VolumeEventReceiverPlugin {
-  async echo(options: { value: string }): Promise<{ value: string }> {
-    console.log('ECHO', options);
-    return options;
+  async startListening(): Promise<{ status: string }> {
+    return { status: 'Not implemented for web' };
   }
+
+    async stopListening(): Promise<{ status: string }> {
+        return { status: 'Not implemented for web' };
+    }
 }

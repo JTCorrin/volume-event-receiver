@@ -1,3 +1,4 @@
 export interface VolumeEventReceiverPlugin {
-  echo(options: { value: string }): Promise<{ value: string }>;
+  startListening(): Promise<{ status: string }>;
+  stopListening(): Promise<{ status: string }>;
 }
