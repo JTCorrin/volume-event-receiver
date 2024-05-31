@@ -45,8 +45,9 @@ public class VolumeEventReceiverService extends Service {
 
         Notification notification = new NotificationCompat.Builder(this, "VolumeButtonServiceChannel")
                 .setContentTitle("Volume Button Service")
-                .setContentText("Listening for volume button presses")
+                .setContentText("Listening for volume button presses. Phone must be UNLOCKED to work.")
                 .setSmallIcon(R.drawable.ic_notification)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .build();
 
         startForeground(1, notification);
