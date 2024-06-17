@@ -13,7 +13,6 @@ public class VolumeEventReceiverPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "startListening", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "stopListening", returnType: CAPPluginReturnPromise),
     ]
-    private let implementation = VolumeEventReceiver()
 
     @objc func startListening(_ call: CAPPluginCall) {
         guard let listenerName = call.options["listenerName"] as? String else {
