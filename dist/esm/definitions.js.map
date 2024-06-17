@@ -1,0 +1,1 @@
+{"version":3,"file":"definitions.js","sourceRoot":"","sources":["../../src/definitions.ts"],"names":[],"mappings":"","sourcesContent":["export interface VolumeEventReceiverPlugin {\n  startListening(): Promise<{ status: string }>;\n  stopListening(): Promise<{ status: string }>;\n}\n"]}

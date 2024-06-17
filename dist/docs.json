@@ -1,0 +1,35 @@
+{
+  "api": {
+    "name": "VolumeEventReceiverPlugin",
+    "slug": "volumeeventreceiverplugin",
+    "docs": "",
+    "tags": [],
+    "methods": [
+      {
+        "name": "startListening",
+        "signature": "() => Promise<{ status: string; }>",
+        "parameters": [],
+        "returns": "Promise<{ status: string; }>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "startlistening"
+      },
+      {
+        "name": "stopListening",
+        "signature": "() => Promise<{ status: string; }>",
+        "parameters": [],
+        "returns": "Promise<{ status: string; }>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "stoplistening"
+      }
+    ],
+    "properties": []
+  },
+  "interfaces": [],
+  "enums": [],
+  "typeAliases": [],
+  "pluginConfigs": []
+}
