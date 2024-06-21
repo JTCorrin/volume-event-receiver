@@ -1,5 +1,7 @@
 import Foundation
 import Capacitor
+import AVFoundation
+import MediaPlayer
 
 /**
  * Please read the Capacitor iOS Plugin Development Guide
@@ -9,48 +11,71 @@ import Capacitor
 public class VolumeEventReceiverPlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "VolumeEventReceiverPlugin"
     public let jsName = "VolumeEventReceiver"
+
+    private var volumeView: MPVolumeView?
+    private var audioSession: AVAudioSession?
+
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "startListening", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "stopListening", returnType: CAPPluginReturnPromise),
     ]
 
     @objc func startListening(_ call: CAPPluginCall) {
-        guard let listenerName = call.options["listenerName"] as? String else {
-            call.reject("Must provide an listener name")
-            return
-        }
-
-        self.listenerName = call.getString("listenerName") ?? listenerName
-
-        VolumeButtonDetector.shared.delegate = self
-        VolumeButtonDetector.shared.startListening()
-
-        call.resolve(["message":"Plugin Activated! \(listenerName)"])
-        
-        timerAction()
+        setupVolumeListener()
+        call.resolve([
+            "status": "started"
+        ])
     }
 
-    @objc func timerAction(){
-        print("Timer Action!")
-        timerEx=timerEx+1
-        self.notifyListeners(listenerName, data: ["data":"Timer Execution \(timerEx)"])
-    }
 
     @objc func stopListening(_ call: CAPPluginCall) {
-        
-        VolumeButtonDetector.shared.delegate = nil
-        VolumeButtonDetector.shared.stopListening()
+        removeVolumeListener()
+        call.resolve([
+            "status": "stopped"
+        ])
+    }
 
-        resetTimer?.invalidate()
+    private func setupVolumeListener() {
+        // Set up audio session
+        audioSession = AVAudioSession.sharedInstance()
+        do {
+            try audioSession?.setCategory(.playback, mode: .default, options: [])
+            try audioSession?.setActive(true)
+        } catch {
+            print("Failed to set up audio session")
+        }
         
-        timerAction()
-        call.resolve(["message":"Plugin Removed \(listenerName)"])
+        // Set up MPVolumeView
+        volumeView = MPVolumeView(frame: .zero)
+        if let volumeView = volumeView {
+            volumeView.isHidden = true
+            self.bridge?.viewController?.view.addSubview(volumeView)
+        }
+        
+        // Listen for volume changes
+        NotificationCenter.default.addObserver(self, selector: #selector(volumeChanged(notification:)), name: .AVSystemController_SystemVolumeDidChangeNotification, object: nil)
+        
+        // Enable receiving remote control events
+        UIApplication.shared.beginReceivingRemoteControlEvents()
+    }
+
+    private func removeVolumeListener() {
+        if let volumeView = volumeView {
+            volumeView.removeFromSuperview()
+        }
+        NotificationCenter.default.removeObserver(self, name: .AVSystemController_SystemVolumeDidChangeNotification, object: nil)
+        UIApplication.shared.endReceivingRemoteControlEvents()
     }
 
 
-    @objc func volumeChanged(_ volume: Float) {
-        print("Volum Change Invoked \(volume)")
-        self.notifyListeners(listenerName, data: ["data":"Event Fire", "volume":volume])
+    @objc private func volumeChanged(notification: NSNotification) {
+        if let userInfo = notification.userInfo,
+           let reason = userInfo["AVSystemController_AudioVolumeChangeReasonNotificationParameter"] as? String,
+           reason == "ExplicitVolumeChange" {
+            notifyListeners("volumeButtonEvent", data: [
+                "event": "volumeChanged"
+            ])
+        }
     }
 
     // Rest of api
