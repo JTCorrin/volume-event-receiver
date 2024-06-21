@@ -53,7 +53,7 @@ public class VolumeEventReceiverPlugin: CAPPlugin, CAPBridgedPlugin {
         }
         
         // Listen for volume changes
-        NotificationCenter.default.addObserver(self, selector: #selector(volumeChanged(notification:)), name: .AVSystemController_SystemVolumeDidChangeNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(volumeChanged(notification:)), name: Notification.Name(rawValue: "AVSystemController_SystemVolumeDidChangeNotification"), object: nil)
         
         // Enable receiving remote control events
         UIApplication.shared.beginReceivingRemoteControlEvents()
@@ -63,7 +63,7 @@ public class VolumeEventReceiverPlugin: CAPPlugin, CAPBridgedPlugin {
         if let volumeView = volumeView {
             volumeView.removeFromSuperview()
         }
-        NotificationCenter.default.removeObserver(self, name: .AVSystemController_SystemVolumeDidChangeNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: Notification.Name(rawValue: "AVSystemController_SystemVolumeDidChangeNotification"), object: nil)
         UIApplication.shared.endReceivingRemoteControlEvents()
     }
 
