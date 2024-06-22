@@ -13,8 +13,8 @@ public class VolumeEventReceiverPlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "VolumeEventReceiver"
 
     private var volumeView: MPVolumeView?
-
-    private var audioSession = AVAudioSession.sharedInstance()
+    private var audioSession: AVAudioSession?
+    private var volumeObservation: NSKeyValueObservation?
 
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "startListening", returnType: CAPPluginReturnPromise),
@@ -41,25 +41,27 @@ public class VolumeEventReceiverPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     private func setupVolumeListener() {
-        // Set up audio session
         audioSession = AVAudioSession.sharedInstance()
         do {
             try audioSession?.setActive(true)
             try audioSession?.setCategory(.playback, mode: .default, options: [])
         } catch {
-            print("Failed to set up audio session")
+            print("Failed to set up audio session \(error)")
         }
 
         // Set up MPVolumeView
-        volumeView = MPVolumeView(frame: .zero)
+        volumeView = MPVolumeView(frame: CGRect(x: -100, y: 0, width: 10, height: 10))
         if let volumeView = volumeView {
             volumeView.isHidden = true
             self.bridge?.viewController?.view.addSubview(volumeView)
         }
 
-        // Listen for volume changes
-        NotificationCenter.default.addObserver(self, selector: #selector(volumeChanged(notification:)), name: Notification.Name(rawValue: "AVSystemController_SystemVolumeDidChangeNotification"), object: nil)
-
+        // Listen for volume changes using KVO
+        volumeObservation = audioSession?.observe(\.outputVolume, options: [.new]) { [weak self] (audioSession, change) in
+            if let newVolume = change.newValue {
+                self?.volumeChanged(newVolume: newVolume)
+            }
+        }
         // Enable receiving remote control events
         UIApplication.shared.beginReceivingRemoteControlEvents()
     }
@@ -68,19 +70,14 @@ public class VolumeEventReceiverPlugin: CAPPlugin, CAPBridgedPlugin {
         if let volumeView = volumeView {
             volumeView.removeFromSuperview()
         }
-        NotificationCenter.default.removeObserver(self, name: Notification.Name(rawValue: "AVSystemController_SystemVolumeDidChangeNotification"), object: nil)
+        volumeObservation = nil
         UIApplication.shared.endReceivingRemoteControlEvents()
     }
 
-    @objc private func volumeChanged(notification: NSNotification) {
-        // Add a log to see the notification object
-        print(notification)
-        if let userInfo = notification.userInfo,
-           let reason = userInfo["AVSystemController_AudioVolumeChangeReasonNotificationParameter"] as? String,
-           reason == "ExplicitVolumeChange" {
-            notifyListeners("volumeButtonEvent", data: [
-                "event": "volumeChanged"
-            ])
-        }
+    private func volumeChanged(newVolume: Float) {
+        notifyListeners("volumeButtonEvent", data: [
+            "event": "volumeChanged",
+            "volume": newVolume
+        ])
     }
 }
