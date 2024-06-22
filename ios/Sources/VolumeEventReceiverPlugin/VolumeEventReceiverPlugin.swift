@@ -13,7 +13,8 @@ public class VolumeEventReceiverPlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "VolumeEventReceiver"
 
     private var volumeView: MPVolumeView?
-    private var audioSession: AVAudioSession?
+
+    private var audioSession = AVAudioSession.sharedInstance()
 
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "startListening", returnType: CAPPluginReturnPromise),
@@ -43,8 +44,8 @@ public class VolumeEventReceiverPlugin: CAPPlugin, CAPBridgedPlugin {
         // Set up audio session
         audioSession = AVAudioSession.sharedInstance()
         do {
-            try audioSession?.setCategory(.playback, mode: .default, options: [])
             try audioSession?.setActive(true)
+            try audioSession?.setCategory(.playback, mode: .default, options: [])
         } catch {
             print("Failed to set up audio session")
         }
@@ -72,6 +73,8 @@ public class VolumeEventReceiverPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc private func volumeChanged(notification: NSNotification) {
+        // Add a log to see the notification object
+        print(notification)
         if let userInfo = notification.userInfo,
            let reason = userInfo["AVSystemController_AudioVolumeChangeReasonNotificationParameter"] as? String,
            reason == "ExplicitVolumeChange" {
@@ -80,6 +83,4 @@ public class VolumeEventReceiverPlugin: CAPPlugin, CAPBridgedPlugin {
             ])
         }
     }
-
-    // Rest of api
 }
