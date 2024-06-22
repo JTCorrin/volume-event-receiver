@@ -21,18 +21,22 @@ public class VolumeEventReceiverPlugin: CAPPlugin, CAPBridgedPlugin {
     ]
 
     @objc func startListening(_ call: CAPPluginCall) {
-        setupVolumeListener()
-        call.resolve([
-            "status": "started"
-        ])
+        DispatchQueue.main.async {
+            self.setupVolumeListener()
+            call.resolve([
+                "status": "started"
+            ])
+        }
     }
 
 
     @objc func stopListening(_ call: CAPPluginCall) {
-        removeVolumeListener()
-        call.resolve([
-            "status": "stopped"
-        ])
+        DispatchQueue.main.async {
+            self.removeVolumeListener()
+            call.resolve([
+                "status": "stopped"
+            ])
+        }
     }
 
     private func setupVolumeListener() {
@@ -44,17 +48,17 @@ public class VolumeEventReceiverPlugin: CAPPlugin, CAPBridgedPlugin {
         } catch {
             print("Failed to set up audio session")
         }
-        
+
         // Set up MPVolumeView
         volumeView = MPVolumeView(frame: .zero)
         if let volumeView = volumeView {
             volumeView.isHidden = true
             self.bridge?.viewController?.view.addSubview(volumeView)
         }
-        
+
         // Listen for volume changes
         NotificationCenter.default.addObserver(self, selector: #selector(volumeChanged(notification:)), name: Notification.Name(rawValue: "AVSystemController_SystemVolumeDidChangeNotification"), object: nil)
-        
+
         // Enable receiving remote control events
         UIApplication.shared.beginReceivingRemoteControlEvents()
     }
@@ -66,7 +70,6 @@ public class VolumeEventReceiverPlugin: CAPPlugin, CAPBridgedPlugin {
         NotificationCenter.default.removeObserver(self, name: Notification.Name(rawValue: "AVSystemController_SystemVolumeDidChangeNotification"), object: nil)
         UIApplication.shared.endReceivingRemoteControlEvents()
     }
-
 
     @objc private func volumeChanged(notification: NSNotification) {
         if let userInfo = notification.userInfo,
