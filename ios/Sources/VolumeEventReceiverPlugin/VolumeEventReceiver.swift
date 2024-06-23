@@ -1,5 +1,5 @@
 //
-//  VolumeButtonDetector.swift
+//  VolumeEventReceiver.swift
 //  VolumeDemo
 //
 //  Created by Mac Mini DN on 06/06/24.
@@ -12,8 +12,8 @@ protocol VolumeButtonListenerDelegate: AnyObject {
     func volumeChanged(_ volume: Float)
 }
 
-class VolumeButtonDetector: NSObject {
-    static let shared = VolumeButtonDetector()
+class VolumeEventReceiver: NSObject {
+    static let shared = VolumeEventReceiver()
     weak var delegate: VolumeButtonListenerDelegate?
     private var audioSession = AVAudioSession.sharedInstance()
     var player: AVAudioPlayer?

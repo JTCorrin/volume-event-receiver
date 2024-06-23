@@ -7,7 +7,7 @@ import AVFoundation
  * here: https://capacitorjs.com/docs/plugins/ios
  */
 @objc(VolumeEventReceiverPlugin)
-public class VolumeEventReceiverPlugin: CAPPlugin, CAPBridgedPlugin {
+public class VolumeEventReceiverPlugin: CAPPlugin, CAPBridgedPlugin, VolumeButtonListenerDelegate {
     public let identifier = "VolumeEventReceiverPlugin"
     public let jsName = "VolumeEventReceiver"
     var listenerName = ""
@@ -48,7 +48,7 @@ public class VolumeEventReceiverPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
 
-    @objc private func volumeChanged(notification: NSNotification) {
+    @objc func volumeChanged(_ volume: Float) {
         print("Volum Change Invoked \(volume)")
         self.notifyListeners(listenerName, data: ["data":"Event Fire", "volume":volume])
     }
