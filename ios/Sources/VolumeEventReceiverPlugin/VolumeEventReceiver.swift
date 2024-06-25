@@ -17,6 +17,7 @@ class VolumeEventReceiver: NSObject {
     weak var delegate: VolumeButtonListenerDelegate?
     private var audioSession = AVAudioSession.sharedInstance()
     var player: AVAudioPlayer?
+    
     private override init() {
         super.init()
         //TODO: Uncomment below in future

@@ -10,7 +10,9 @@ import AVFoundation
 public class VolumeEventReceiverPlugin: CAPPlugin, CAPBridgedPlugin, VolumeButtonListenerDelegate {
     public let identifier = "VolumeEventReceiverPlugin"
     public let jsName = "VolumeEventReceiver"
-    var listenerName = ""
+    var listenerName = "volumeButtonEvent"
+    var bringToForeground = true
+    var isListening = false
 
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "startListening", returnType: CAPPluginReturnPromise),
@@ -18,38 +20,27 @@ public class VolumeEventReceiverPlugin: CAPPlugin, CAPBridgedPlugin, VolumeButto
     ]
 
     @objc func startListening(_ call: CAPPluginCall) {
-        guard let listenerName = call.options["listenerName"] as? String else {
-            call.reject("Must provide an listener name")
+        if isListening {
+            call.reject("Already Listening")
             return
         }
-
         self.listenerName = call.getString("listenerName") ?? listenerName
         VolumeEventReceiver.shared.delegate = self
         VolumeEventReceiver.shared.startListening()
+        isListening = true
         call.resolve(["status":"Plugin Listening"])
-        timerAction()
-    }
-
-    @objc func timerAction(){
-        print("Timer Action!")
-        timerEx=timerEx+1
-        self.notifyListeners(listenerName, data: ["data":"Timer Execution \(timerEx)"])
     }
 
 
     @objc func stopListening(_ call: CAPPluginCall) {
         VolumeEventReceiver.shared.delegate = nil
         VolumeEventReceiver.shared.stopListening()
-
-        resetTimer?.invalidate()
-        
-        timerAction()
+        isListening = false
         call.resolve(["message":"Plugin Removed \(listenerName)"])
     }
 
 
     @objc func volumeChanged(_ volume: Float) {
-        print("Volum Change Invoked \(volume)")
         self.notifyListeners(listenerName, data: ["data":"Event Fire", "volume":volume])
     }
 }
